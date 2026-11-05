@@ -1,5 +1,14 @@
 # 更新日志
 
+## 1.1.1
+
+- 插件 ID 由 `qoder.mai-rss` 改为 `bluemika.mai-rss`（开发期前缀换成作者命名空间）。
+- **升级注意**：ID 变了就等于换了个插件。安装目录从 `plugins/qoder_mai-rss` 变成
+  `plugins/bluemika_mai-rss`，订阅数据从 `data/plugins/qoder.mai-rss/` 变成 `data/plugins/bluemika.mai-rss/`，
+  Dashboard 的启用状态与 `config.toml` 也各自独立。从 1.1.0 升上来要自己把旧数据目录里的
+  `subscriptions.json`（以及 `translate_cache.json`，如果生成过）复制到新目录，并且**把旧目录从
+  `plugins/` 里移走**——两份同时存在会各跑一轮抓取，同一篇文章推两遍。
+
 ## 1.1.0
 
 主要功能
@@ -55,4 +64,4 @@
 - 命令正文改由插件自己 `send.text` 回当前会话：Host 只把 Command 的 `response` 写日志、不会替插件回话，
   此前 `/rss` 各子命令在群里静默无回复；`response` 降级为日志摘要，`/rss preview` 直接就是那条推送。
 - 源查找改为「ID / 名称优先，其次序号」：源 ID 偶尔全是数字（实测 `35237580`），旧逻辑先判数字会把它当越界序号而查不到。
-- 订阅数据落在 `data/plugins/qoder.mai-rss/subscriptions.json`，热重载与重启都不丢。
+- 订阅数据落在 `data/plugins/bluemika.mai-rss/subscriptions.json`，热重载与重启都不丢。

@@ -8,28 +8,32 @@
 
 ## 安装
 
-三种方式，任选一种。装完都要在 Dashboard 的插件管理里**启用 `qoder.mai-rss`**。
+三种方式，任选一种。装完都要在 Dashboard 的插件管理里**启用 `bluemika.mai-rss`**。
 
 **A. ZIP 上传（最省事）**：下载 [Releases](https://github.com/bluemika111/mai-rss/releases) 里的
 `mai-rss-<版本>.zip`，在 Dashboard → 插件页 → 「从 ZIP 安装」里选择它（上限 100 MB）。
 npm 上也有同一份包：`npm i @bluemika/mai-rss` 后取 `node_modules/@bluemika/mai-rss/mai-rss-<版本>.zip`。
 ZIP 安装后需要重启 MaiBot 才会加载。
 
-**B. 直接放进插件目录**：把仓库内容 clone 到主程序的 `plugins/qoder_mai-rss/`（目录名是插件 ID 里的
+**B. 直接放进插件目录**：把仓库内容 clone 到主程序的 `plugins/bluemika_mai-rss/`（目录名是插件 ID 里的
 点换成下划线，不是 `mai-rss`）：
 
 ```bash
-git clone https://github.com/bluemika111/mai-rss.git plugins/qoder_mai-rss
+git clone https://github.com/bluemika111/mai-rss.git plugins/bluemika_mai-rss
 ```
 
-Docker 部署则放进容器挂载的 `plugins/` 目录，容器内路径通常是 `/MaiMBot/plugins/qoder_mai-rss`。
+Docker 部署则放进容器挂载的 `plugins/` 目录，容器内路径通常是 `/MaiMBot/plugins/bluemika_mai-rss`。
 
 **C. 从仓库安装**：Dashboard 的「从仓库安装」走的是官方插件索引，本插件还没提交进索引；
 愿意用接口的话可以直接调用 `POST /api/webui/plugins/install`，body 填
-`{"plugin_id": "qoder.mai-rss", "repository_url": "https://github.com/bluemika111/mai-rss", "branch": "main"}`。
+`{"plugin_id": "bluemika.mai-rss", "repository_url": "https://github.com/bluemika111/mai-rss", "branch": "main"}`。
 
-首次加载会在 `data/plugins/qoder.mai-rss/subscriptions.json` 建立订阅数据文件，Runner 也会在插件目录
+首次加载会在 `data/plugins/bluemika.mai-rss/subscriptions.json` 建立订阅数据文件，Runner 也会在插件目录
 生成 `config.toml`。升级版本时这两个文件都不会被覆盖。
+
+从 1.1.0 或更早（那时插件 ID 是 `qoder.mai-rss`）升上来要注意：ID 变了等于换了个插件，订阅数据不会自动
+跟到新目录，得手动把 `data/plugins/qoder.mai-rss/subscriptions.json` 复制到 `data/plugins/bluemika.mai-rss/`，
+并把旧的 `plugins/qoder_mai-rss` 移出 `plugins/`，否则两份同时跑会把同一篇文章推两遍。
 
 
 ## 聊天命令
@@ -188,12 +192,12 @@ MAIBOT_ROOT=/path/to/MaiBot python tests/check_schemas.py
 ```
 
 改 `.py` 或 `_manifest.json` 会被主程序的文件监视自动重载；改 `webui.json` 或 `webui/index.html`
-不在监视范围，要在聊天里发 `/pm plugin reload qoder.mai-rss`。
+不在监视范围，要在聊天里发 `/pm plugin reload bluemika.mai-rss`。
 
 打安装用的 ZIP（`_manifest.json` 必须在包根，或只包一层插件目录）：
 
 ```bash
-zip -r ../mai-rss-1.1.0.zip . -x '*__pycache__*' -x 'logs/*' -x 'data/*' -x 'config.toml'
+zip -r ../mai-rss-1.1.1.zip . -x '*__pycache__*' -x 'logs/*' -x 'data/*' -x 'config.toml'
 ```
 
 ## 许可

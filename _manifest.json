@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "name": "Mai RSS 订阅推送",
   "description": "订阅任意多个 RSS / Atom 源，按会话选择订阅哪些源，新文章到达时把来源、时间与正文（可附译文）发到聊天里",
   "author": {
@@ -46,5 +46,5 @@
       "zh-CN"
     ]
   },
-  "id": "mai-rss"
+  "id": "bluemika.mai-rss"
 }

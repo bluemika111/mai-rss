@@ -127,7 +127,7 @@ class FakeCtx:
 def make_env(translate=None, llm=None, with_catalog=True):
     """搭一个临时数据目录：data/plugins/<id> 往上三级就是主程序根目录。"""
     root = tempfile.mkdtemp()
-    data_dir = Path(root) / "data" / "plugins" / "qoder.mai-rss"
+    data_dir = Path(root) / "data" / "plugins" / "bluemika.mai-rss"
     data_dir.mkdir(parents=True)
     if with_catalog:
         config_dir = Path(root) / "config"
@@ -216,7 +216,7 @@ assert mod.filter_llm_models(None) == []
 print("[ok] filter_llm_models 滤掉嵌入模型、去重、服务商兜底")
 
 fake_root = os.path.join(tempfile.gettempdir(), "mai-rss-catalog-root")
-data_dir = os.path.join(fake_root, "data", "plugins", "qoder.mai-rss")
+data_dir = os.path.join(fake_root, "data", "plugins", "bluemika.mai-rss")
 candidates = mod.model_config_candidates(data_dir)
 assert os.path.join(fake_root, "config", "model_config.toml") in candidates, candidates
 assert len(candidates) == len(set(candidates)), candidates
