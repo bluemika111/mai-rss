@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+logs/
+data/
+dist/
+# Runner 在插件目录里生成的实例配置，可能含 custom 通道的 api_key
+config.toml

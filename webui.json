@@ -1,0 +1,102 @@
+{
+  "schema_version": 2,
+  "required_capabilities": ["custom_pages", "structured_arguments"],
+  "pages": [
+    {
+      "id": "subscriptions",
+      "title": "RSS 订阅",
+      "description": "维护订阅源，并为每个会话勾选要订阅的源",
+      "placement": "sidebar",
+      "icon": "list",
+      "mode": "custom",
+      "entry": "webui/index.html",
+      "layout": "document",
+      "queries": {
+        "overview": {
+          "api": "webui_overview",
+          "version": "1"
+        },
+        "translate": {
+          "api": "webui_translate_options",
+          "version": "1"
+        }
+      },
+      "actions": {
+        "add_feed": {
+          "api": "webui_add_feed",
+          "version": "1",
+          "parameters": {
+            "url": {
+              "type": "string",
+              "required": true,
+              "max_length": 2000
+            },
+            "name": {
+              "type": "string",
+              "max_length": 200
+            }
+          }
+        },
+        "remove_feed": {
+          "api": "webui_remove_feed",
+          "version": "1",
+          "parameters": {
+            "feed_id": {
+              "type": "string",
+              "required": true,
+              "max_length": 64
+            }
+          }
+        },
+        "set_feeds": {
+          "api": "webui_set_feeds",
+          "version": "1",
+          "parameters": {
+            "stream_id": {
+              "type": "string",
+              "required": true,
+              "max_length": 200
+            },
+            "feed_ids": {
+              "type": "array",
+              "required": true,
+              "items": {
+                "type": "string",
+                "max_length": 64
+              },
+              "max_items": 200
+            }
+          }
+        },
+        "check_now": {
+          "api": "webui_check_now",
+          "version": "1"
+        },
+        "set_translate": {
+          "api": "webui_set_translate",
+          "version": "1",
+          "parameters": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "model": {
+              "type": "string",
+              "max_length": 200
+            }
+          }
+        },
+        "test_translate": {
+          "api": "webui_test_translate",
+          "version": "1",
+          "parameters": {
+            "feed_id": {
+              "type": "string",
+              "required": true,
+              "max_length": 64
+            }
+          }
+        }
+      }
+    }
+  ]
+}

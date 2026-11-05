@@ -1,0 +1,50 @@
+{
+  "manifest_version": 2,
+  "version": "1.1.0",
+  "name": "Mai RSS 订阅推送",
+  "description": "订阅任意多个 RSS / Atom 源，按会话选择订阅哪些源，新文章到达时把来源、时间与正文（可附译文）发到聊天里",
+  "author": {
+    "name": "bluemika111",
+    "url": "https://github.com/bluemika111"
+  },
+  "license": "GPL-v3.0-or-later",
+  "urls": {
+    "repository": "https://github.com/bluemika111/mai-rss",
+    "homepage": "https://github.com/bluemika111/mai-rss",
+    "documentation": "https://github.com/bluemika111/mai-rss/blob/main/README.md",
+    "issues": "https://github.com/bluemika111/mai-rss/issues"
+  },
+  "changelog": "CHANGELOG.md",
+  "host_application": {
+    "min_version": "1.3.0",
+    "max_version": "1.3.99"
+  },
+  "sdk": {
+    "min_version": "2.16.0",
+    "max_version": "2.99.99"
+  },
+  "dependencies": [],
+  "display": {
+    "icon": {
+      "type": "local",
+      "value": "assets/icon.svg",
+      "fallback": "rss",
+      "background": "#1C272C"
+    }
+  },
+  "capabilities": [
+    "send.text",
+    "chat.get_all_streams",
+    "config.get",
+    "llm.generate",
+    "llm.get_available_models"
+  ],
+  "i18n": {
+    "default_locale": "zh-CN",
+    "locales_path": "_locales",
+    "supported_locales": [
+      "zh-CN"
+    ]
+  },
+  "id": "qoder.mai-rss"
+}

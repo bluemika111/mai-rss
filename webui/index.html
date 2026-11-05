@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  body {
+    padding: 20px 22px 30px;
+    font-family: var(--maibot-font-body, system-ui, sans-serif);
+    color: var(--maibot-foreground, #e5e7eb);
+    background: var(--maibot-background, transparent);
+    font-size: 13px;
+  }
+  h2 { font-size: 14px; margin: 0 0 12px; font-weight: 600; }
+  .hint { color: var(--maibot-muted, #94a3b8); font-size: 12px; margin: 0 0 16px; }
+  section {
+    margin-bottom: 22px;
+    border: 1px solid var(--maibot-border, #23314d);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: var(--maibot-surface, rgba(255, 255, 255, 0.03));
+  }
+  .meta { display: flex; flex-wrap: wrap; gap: 14px; color: var(--maibot-muted, #94a3b8); font-size: 12px; margin-bottom: 12px; }
+  .feed {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-top: 1px solid var(--maibot-border, #23314d);
+  }
+  .feed:first-of-type { border-top: none; }
+  .feed .name { font-weight: 600; flex: none; max-width: 40%; }
+  .feed .url { color: var(--maibot-muted, #94a3b8); font-size: 11px; overflow-wrap: anywhere; flex: 1; }
+  .feed .count { flex: none; font-size: 11px; color: var(--maibot-muted, #94a3b8); }
+  .feed .error { flex-basis: 100%; color: #f87171; font-size: 11px; overflow-wrap: anywhere; }
+  select, input[type=text] {
+    width: 100%; box-sizing: border-box; padding: 7px 9px; font: inherit;
+    border: 1px solid var(--maibot-border, #23314d); border-radius: 8px;
+    background: var(--maibot-inset, #111a2e); color: inherit;
+  }
+  .add-row { display: flex; gap: 8px; margin-top: 12px; }
+  .add-row input[name=url] { flex: 3; }
+  .add-row input[name=name] { flex: 2; }
+  button {
+    padding: 7px 13px; border-radius: 8px; border: 1px solid var(--maibot-border, #23314d);
+    background: var(--maibot-primary, #4ade80); color: #06210f; font: inherit; font-weight: 600; cursor: pointer;
+    flex: none;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  button.ghost { background: transparent; color: var(--maibot-muted, #94a3b8); font-weight: 400; }
+  button.danger { background: transparent; color: #f87171; }
+  .checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 14px; margin: 12px 0; }
+  .check { display: flex; align-items: center; gap: 7px; }
+  .check input { width: 16px; height: 16px; accent-color: var(--maibot-primary, #4ade80); flex: none; }
+  .check label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #status { margin-top: 12px; font-size: 12px; min-height: 16px; color: var(--maibot-muted, #94a3b8); }
+  .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .toolbar select { flex: 1; }
+  .toolbar .check { flex: none; }
+  .preview {
+    margin: 12px 0 0; padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere;
+    border: 1px solid var(--maibot-border, #23314d); border-radius: 8px;
+    background: var(--maibot-inset, #111a2e); font-size: 12px; line-height: 1.55;
+  }
+  .error { color: #f87171; font-size: 12px; margin: 8px 0 0; overflow-wrap: anywhere; }
+</style>
+</head>
+<body class="maibot-page">
+<h2>RSS 订阅</h2>
+<p class="hint">聊天里也可以用 <code>/rss list</code>、<code>/rss bind 1 3</code> 管理；本页改动会立刻写进插件数据文件。</p>
+
+<section>
+  <h2>订阅源</h2>
+  <div class="meta">
+    <span id="meta-state">抓取状态：读取中……</span>
+    <span id="meta-poll"></span>
+  </div>
+  <div id="feeds"></div>
+  <div class="add-row">
+    <input type="text" name="url" placeholder="订阅地址 https://example.com/feed.xml">
+    <input type="text" name="name" placeholder="名称（可留空）">
+    <button id="add">添加源</button>
+  </div>
+</section>
+
+<section>
+  <h2>会话订阅</h2>
+  <div class="toolbar">
+    <select id="stream"></select>
+    <button id="save" class="ghost">保存本会话</button>
+    <button id="check" class="ghost">立即抓取</button>
+  </div>
+  <p class="hint">不勾选即「不订阅」；勾选「全部源」后新增的订阅源会自动生效。</p>
+  <p class="error" id="streams-error"></p>
+  <div class="checks" id="checks"></div>
+</section>
+
+<section>
+  <h2>翻译</h2>
+  <p class="hint" id="translate-route">读取中……</p>
+  <div class="toolbar">
+    <label class="check"><input type="checkbox" id="translate-on"> 推送时附上译文</label>
+    <select id="translate-model"></select>
+    <button id="translate-save" class="ghost">保存翻译</button>
+  </div>
+  <p class="hint">聊天里也可以用 <code>/rss translate list</code> 看模型、<code>/rss translate model 3</code> 直接换。
+    语言、翻译范围、单轮次数上限等参数在「插件配置 → [翻译]」里改。</p>
+  <p class="error" id="translate-error"></p>
+  <pre id="translate-preview" class="preview" hidden></pre>
+</section>
+
+<p id="status" role="status"></p>
+
+<script type="module">
+  const $ = (id) => document.querySelector('#' + id);
+  const statusEl = $('status');
+  const feedsEl = $('feeds');
+  const checksEl = $('checks');
+  const streamSelect = $('stream');
+
+  let state = { feeds: [], streams: [], streams_error: '' };
+  let translate = { models: [], tasks: [], enabled: false, route: '', target_lang: '中文' };
+  let selectedStream = '';
+
+  function setStatus(text) {
+    statusEl.textContent = text;
+  }
+
+  function clear(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  function renderFeeds() {
+    clear(feedsEl);
+    if (!state.feeds.length) {
+      const empty = document.createElement('p');
+      empty.className = 'hint';
+      empty.textContent = '还没有订阅源，先在下面添加一个。';
+      feedsEl.append(empty);
+      return;
+    }
+    state.feeds.forEach((feed) => {
+      const row = document.createElement('div');
+      row.className = 'feed';
+
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = `${feed.name}`;
+
+      const url = document.createElement('span');
+      url.className = 'url';
+      url.textContent = feed.url;
+
+      const count = document.createElement('span');
+      count.className = 'count';
+      count.textContent = `${feed.item_count} 条 · ${feed.last_poll}`;
+
+      const remove = document.createElement('button');
+      remove.className = 'danger';
+      remove.textContent = '删除';
+      remove.onclick = async () => {
+        if (!window.confirm(`删除订阅源「${feed.name}」？各会话对它的订阅也会一并清除。`)) return;
+        await run(async () => {
+          await maibot.action('remove_feed', { feed_id: feed.id });
+          await refresh();
+          return '已删除。';
+        });
+      };
+
+      const tryTranslate = document.createElement('button');
+      tryTranslate.className = 'ghost';
+      tryTranslate.textContent = '试译';
+      tryTranslate.title = '抓最新一条并翻译，只在页面显示，不会发到聊天';
+      tryTranslate.onclick = () => run(async () => {
+        const result = await maibot.action('test_translate', { feed_id: feed.id });
+        const box = $('translate-preview');
+        box.textContent = result.text;
+        box.hidden = false;
+        return result.translated ? '已试译（含译文）。' : '已试译：没有译文，检查翻译开关与模型。';
+      });
+
+      row.append(name, url, count, tryTranslate, remove);
+      if (feed.last_error) {
+        const error = document.createElement('span');
+        error.className = 'error';
+        error.textContent = '最近错误：' + feed.last_error;
+        row.append(error);
+      }
+      feedsEl.append(row);
+    });
+  }
+
+  function renderStreams() {
+    clear(streamSelect);
+    const errorEl = $('streams-error');
+    errorEl.textContent = state.streams_error || '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    if (state.streams.length) {
+      placeholder.textContent = '请选择会话';
+    } else if (state.streams_error) {
+      placeholder.textContent = '聊天流获取失败，见下方原因';
+    } else {
+      placeholder.textContent = '主程序暂无聊天流（先在有消息的群里聊几句再刷新）';
+    }
+    streamSelect.append(placeholder);
+    const platforms = new Set(state.streams.map((stream) => stream.platform).filter(Boolean));
+    const multiPlatform = platforms.size > 1;
+    state.streams.forEach((stream) => {
+      const option = document.createElement('option');
+      option.value = stream.stream_id;
+      const bound = stream.feed_ids.includes('*') ? '全部源'
+        : stream.feed_ids.length ? `${stream.feed_ids.length} 个源` : '未订阅';
+      // 多平台机器人下同名会话会重复，带上平台才好区分
+      const platform = multiPlatform && stream.platform ? ` · ${stream.platform}` : '';
+      option.textContent = `${stream.label}${platform} — ${bound}`;
+      streamSelect.append(option);
+    });
+    if (selectedStream && state.streams.some((stream) => stream.stream_id === selectedStream)) {
+      streamSelect.value = selectedStream;
+    } else {
+      selectedStream = streamSelect.value;
+    }
+    renderChecks();
+  }
+
+  function renderChecks() {
+    clear(checksEl);
+    const stream = state.streams.find((item) => item.stream_id === selectedStream);
+    const bound = new Set(stream ? stream.feed_ids : []);
+    const wildcard = bound.has('*');
+
+    const allRow = document.createElement('div');
+    allRow.className = 'check';
+    const allBox = document.createElement('input');
+    allBox.type = 'checkbox';
+    allBox.id = 'feed-all';
+    allBox.checked = wildcard;
+    const allLabel = document.createElement('label');
+    allLabel.htmlFor = 'feed-all';
+    allLabel.textContent = '全部源（含以后新增）';
+    allRow.append(allBox, allLabel);
+    checksEl.append(allRow);
+
+    state.feeds.forEach((feed) => {
+      const row = document.createElement('div');
+      row.className = 'check';
+      const box = document.createElement('input');
+      box.type = 'checkbox';
+      box.dataset.feedId = feed.id;
+      box.checked = wildcard || bound.has(feed.id);
+      box.disabled = wildcard;
+      const label = document.createElement('label');
+      label.textContent = feed.name;
+      label.title = feed.url;
+      row.append(box, label);
+      checksEl.append(row);
+    });
+
+    allBox.onchange = () => {
+      checksEl.querySelectorAll('input[data-feed-id]').forEach((box) => {
+        box.disabled = allBox.checked;
+        box.checked = allBox.checked;
+      });
+    };
+  }
+
+  function renderTranslate() {
+    $('translate-route').textContent =
+      `${translate.route} · 目标语言 ${translate.target_lang} · 译文缓存 ${translate.cache_size} 条` +
+      (translate.errors ? ` · 失败 ${translate.errors} 次` : '');
+    $('translate-error').textContent = translate.catalog_error || '';
+    $('translate-on').checked = !!translate.enabled;
+
+    const select = $('translate-model');
+    clear(select);
+    const follow = document.createElement('option');
+    follow.value = '';
+    follow.textContent = translate.models.length ? '（跟随插件配置）' : '（读不到主程序模型列表）';
+    select.append(follow);
+    const groups = new Map();
+    translate.models.forEach((model) => {
+      let group = groups.get(model.provider);
+      if (!group) {
+        group = document.createElement('optgroup');
+        group.label = model.provider;
+        select.append(group);
+        groups.set(model.provider, group);
+      }
+      const option = document.createElement('option');
+      option.value = model.name;
+      option.textContent = model.name;
+      group.append(option);
+    });
+    // 配置里写死、但列表里没有的模型也要能显示出来，否则下拉会假装选中了第一项
+    if (translate.model && !translate.models.some((model) => model.name === translate.model)) {
+      const extra = document.createElement('option');
+      extra.value = translate.model;
+      extra.textContent = `${translate.model}（配置里写的）`;
+      select.append(extra);
+    }
+    select.value = translate.model || '';
+    select.disabled = !translate.models.length;
+  }
+
+  async function refreshTranslate() {
+    try {
+      translate = await maibot.query('translate');
+    } catch (error) {
+      translate = { ...translate, catalog_error: '读取翻译设置失败：' + (error && error.message ? error.message : error) };
+    }
+    renderTranslate();
+  }
+
+  async function run(work) {
+    statusEl.textContent = '处理中……';
+    try {
+      const message = await work();
+      setStatus(message || '完成。');
+    } catch (error) {
+      setStatus('失败：' + (error && error.message ? error.message : String(error)));
+    }
+  }
+
+  async function refresh() {
+    state = await maibot.query('overview');
+    $('meta-state').textContent = state.enabled
+      ? `定时抓取：开启（间隔 ${state.poll_interval_minutes} 分钟）`
+      : '定时抓取：关闭（config.toml 里 fetch.enabled = true 才能开启）';
+    $('meta-poll').textContent = `上次抓取：${state.last_poll} · 共 ${state.feeds.length} 个源`;
+    renderFeeds();
+    renderStreams();
+    await refreshTranslate();
+  }
+
+  $('add').onclick = () => run(async () => {
+    const url = document.querySelector('input[name=url]').value.trim();
+    const name = document.querySelector('input[name=name]').value.trim();
+    if (!url) throw new Error('请填写订阅地址');
+    await maibot.action('add_feed', { url, name });
+    document.querySelector('input[name=url]').value = '';
+    document.querySelector('input[name=name]').value = '';
+    await refresh();
+    return '已添加并建立已读基线（历史文章不会补发）。';
+  });
+
+  $('save').onclick = () => run(async () => {
+    if (!selectedStream) throw new Error('请先选择会话');
+    const ids = [];
+    if (document.querySelector('#feed-all').checked) {
+      ids.push('*');
+    } else {
+      checksEl.querySelectorAll('input[data-feed-id]').forEach((box) => {
+        if (box.checked) ids.push(box.dataset.feedId);
+      });
+    }
+    await maibot.action('set_feeds', { stream_id: selectedStream, feed_ids: ids });
+    await refresh();
+    return ids.length ? '本会话订阅已保存。' : '本会话已取消全部订阅。';
+  });
+
+  $('check').onclick = () => run(async () => {
+    const result = await maibot.action('check_now', {});
+    await refresh();
+    return `抓取完成：${result.feeds} 个源，新推送 ${result.new} 条，失败 ${result.errors} 个。`;
+  });
+
+  $('translate-save').onclick = () => run(async () => {
+    const result = await maibot.action('set_translate', {
+      enabled: $('translate-on').checked,
+      // 选「跟随插件配置」时清掉页面上的覆盖，让 config.toml 里的设置生效
+      model: $('translate-model').value || 'clear',
+    });
+    await refreshTranslate();
+    return `翻译${result.enabled ? '已开启' : '已关闭'} · ${result.route}`;
+  });
+
+  streamSelect.onchange = () => {
+    selectedStream = streamSelect.value;
+    renderChecks();
+  };
+
+  await maibot.ready;
+  try {
+    await refresh();
+  } catch (error) {
+    setStatus('读取失败：' + (error && error.message ? error.message : String(error)));
+  }
+</script>
+</body>
+</html>
