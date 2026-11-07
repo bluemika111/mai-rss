@@ -498,12 +498,19 @@ async def main():
     print("[ok] WebUI 翻译接口：选项、校验、试译不发送")
 
     # 模型目录缺失时明确说明并退回任务名
-    pluginX, _ = make_env(with_catalog=False)
-    await pluginX.on_load()
-    listing = await run(pluginX, "/rss translate list")
-    assert "没找到 model_config.toml" in listing and "utils" in listing, listing
-    options = await pluginX.webui_translate_options()
-    assert options["models"] == [] and options["catalog_error"], options
+    # 官方镜像里 /MaiMBot/config/model_config.toml 是真实存在的，绝对回退路径会让
+    # "读不到目录"这一分支在宿主环境永远走不到，所以这里把回退换成不可能存在的文件
+    pluginX, root_x = make_env(with_catalog=False)
+    original_fallbacks = mod._MODEL_CONFIG_FALLBACKS
+    mod._MODEL_CONFIG_FALLBACKS = (os.path.join(root_x, "missing", "model_config.toml"),)
+    try:
+        await pluginX.on_load()
+        listing = await run(pluginX, "/rss translate list")
+        assert "没找到 model_config.toml" in listing and "utils" in listing, listing
+        options = await pluginX.webui_translate_options()
+        assert options["models"] == [] and options["catalog_error"], options
+    finally:
+        mod._MODEL_CONFIG_FALLBACKS = original_fallbacks
     print("[ok] 读不到 model_config.toml 时说明原因并退回任务名")
 
     # llm 能力缺失（老 Host / 未声明）时不该把推送带崩
